@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tomroyer/docker-multi -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true tomroyer/docker-multi npm run test
+
+after_success:
+  - docker build -t tomroyer/multi-client ./client
+  - docker build -t tomroyer/multi-server ./server
+  - docker build -t tomroyer/multi-nginx ./nginx
+  - docker build -t tomroyer/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push tomroyer/multi-server
+  - docker push tomroyer/multi-client
+  - docker push tomroyer/multi-nginx
+  - docker push tomroyer/multi-worker
